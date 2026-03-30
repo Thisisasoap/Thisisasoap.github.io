@@ -11,9 +11,10 @@
       box-sizing: border-box;
     }
 
+    /* 固定原图风格：橙底黑字，不受系统明暗模式影响 */
     :root {
-      --bg: #f9b233;
-      --text: #000000;
+      --bg: #f9b233; /* 原图暖橙色背景 */
+      --text: #000000; /* 纯黑色文字 */
     }
 
     @media (prefers-color-scheme: dark) {
@@ -33,9 +34,10 @@
       overflow: hidden;
       position: relative;
       transition: background 0.3s;
-      cursor: pointer;
+      cursor: pointer; /* 鼠标悬停显示手型，提示可点击 */
     }
 
+    /* 1:1还原原图竖线背景纹理 */
     body::before {
       content: "";
       position: absolute;
@@ -48,17 +50,16 @@
         var(--text),
         var(--text) 2px,
         transparent 2px,
-        transparent 22px
+        transparent 20px
       );
       opacity: 0.9;
       z-index: 0;
       pointer-events: none;
-      /* 关键：左右留出空白边距，让竖线不贴着文字 */
-      margin: 0 12%;
     }
 
+    /* NOTHING 文字样式，还原圆润粗体效果 */
     .nothing-text {
-      font-size: clamp(6rem, 15vw, 12rem);
+      font-size: clamp(6rem, 15vw, 12rem); /* 自适应屏幕大小 */
       font-weight: 900;
       color: var(--text);
       letter-spacing: 0.1em;
@@ -67,13 +68,14 @@
       user-select: none;
       font-family: "Arial Black", Gadget, sans-serif;
       -webkit-font-smoothing: antialiased;
-      transition: transform 0.2s ease;
+      transition: transform 0.2s ease; /* 点击动画 */
     }
 
     .nothing-text:hover {
-      transform: scale(1.05);
+      transform: scale(1.05); /* 鼠标悬停放大，增强交互感 */
     }
 
+    /* 移动端适配 */
     @media (max-width: 768px) {
       .nothing-text {
         font-size: clamp(3rem, 12vw, 6rem);
@@ -83,6 +85,7 @@
   </style>
 </head>
 <body>
+  <!-- 点击文字跳转到个人主页 about.html -->
   <a href="/about.html" style="text-decoration: none; color: inherit;">
     <div class="nothing-text">NOTHING</div>
   </a>
