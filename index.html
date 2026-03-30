@@ -11,16 +11,17 @@
       box-sizing: border-box;
     }
 
-    /* 明暗模式适配 */
+    /* 固定原图风格：橙底黑字，不受系统明暗模式影响 */
     :root {
       --bg: #f9b233; /* 原图暖橙色背景 */
-      --text: #000000; /* 黑色文字 */
+      --text: #000000; /* 纯黑色文字 */
     }
 
+    /* 强制覆盖深色模式，始终保持原图样式 */
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #1a1a1a; /* 深色模式背景 */
-        --text: #ffffff; /* 白色文字 */
+        --bg: #f9b233;
+        --text: #000000;
       }
     }
 
@@ -36,7 +37,7 @@
       transition: background 0.3s;
     }
 
-    /* 竖线背景纹理 */
+    /* 1:1还原原图竖线背景纹理 */
     body::before {
       content: "";
       position: absolute;
@@ -56,21 +57,20 @@
       pointer-events: none;
     }
 
-    /* NOTHING 文字 */
+    /* NOTHING 文字样式，还原圆润粗体效果 */
     .nothing-text {
-      font-size: clamp(6rem, 15vw, 12rem); /* 自适应屏幕大小 */
+      font-size: clamp(6rem, 15vw, 12rem); /* 自适应屏幕大小，手机/电脑都完美显示 */
       font-weight: 900;
       color: var(--text);
       letter-spacing: 0.1em;
       z-index: 1;
       text-transform: uppercase;
       user-select: none;
-      /* 还原圆润粗体效果 */
       font-family: "Arial Black", Gadget, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* 响应式适配 */
+    /* 移动端适配，避免文字溢出 */
     @media (max-width: 768px) {
       .nothing-text {
         font-size: clamp(3rem, 12vw, 6rem);
