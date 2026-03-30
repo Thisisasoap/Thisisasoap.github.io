@@ -35,13 +35,7 @@
       overflow: hidden;
     }
 
-    /* 3D模型容器：绝对定位，占满全屏，层级在竖线之下 */
-    #model-container {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-    }
+   
 
     /* 竖线纹理：层级在模型之上、文字之下，左右留间隙 */
     body::before {
@@ -61,6 +55,14 @@
       pointer-events: none;
     }
 
+     /* 3D模型容器：绝对定位，占满全屏，层级在竖线之下 */
+    #model-container {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    
     /* NOTHING文字：最上层，层级最高 */
     .nothing-text {
       font-size: clamp(6rem, 15vw, 12rem);
