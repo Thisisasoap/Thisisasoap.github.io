@@ -45,7 +45,7 @@
 
     /* 滚动区域容器 */
     .scroll-container {
-      height: 700vh;
+      height: 823vh;
       position: relative;
     }
 
@@ -242,6 +242,53 @@
       opacity: 0;
     }
 
+    /* ── Phase D: 照片墙 ── */
+    .photo-wall {
+      position: fixed;
+      inset: 0;
+      z-index: 24;
+      pointer-events: none;
+      opacity: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 2rem;
+      justify-content: center;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    .photo-row {
+      display: flex;
+      gap: 1rem;
+      width: max-content;
+    }
+
+    .photo-row img {
+      width: 280px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .photo-row:nth-child(1) { animation: scroll-row-1 18s linear infinite; }
+    .photo-row:nth-child(2) { animation: scroll-row-2 22s linear infinite reverse; }
+    .photo-row:nth-child(3) { animation: scroll-row-3 15s linear infinite; }
+
+    @keyframes scroll-row-1 {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes scroll-row-2 {
+      0%   { transform: translateX(-30%); }
+      100% { transform: translateX(0%); }
+    }
+    @keyframes scroll-row-3 {
+      0%   { transform: translateX(-15%); }
+      100% { transform: translateX(20%); }
+    }
+
     /* 移动端适配 */
     @media (max-width: 768px) {
       .nothing-text {
@@ -269,6 +316,16 @@
         );
         clip-path: circle(0px at 88% 96%);
         -webkit-clip-path: circle(0px at 88% 96%);
+      }
+
+      .photo-wall {
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .photo-row img {
+        width: 180px;
+        height: 130px;
       }
     }
   </style>
@@ -306,23 +363,78 @@
   <div class="rays-layer" aria-hidden="true"></div>
   <canvas class="model-canvas" aria-hidden="true"></canvas>
 
+  <!-- Phase D: 照片墙 -->
+  <div class="photo-wall" aria-hidden="true">
+    <!-- 第1排 -->
+    <div class="photo-row">
+      <img src="/photos/1.jpg" alt="">
+      <img src="/photos/2.jpg" alt="">
+      <img src="/photos/3.jpg" alt="">
+      <img src="/photos/4.jpg" alt="">
+      <img src="/photos/5.jpg" alt="">
+      <img src="/photos/6.jpg" alt="">
+      <img src="/photos/7.jpg" alt="">
+      <img src="/photos/8.jpg" alt="">
+      <img src="/photos/9.jpg" alt="">
+      <!-- 第二套，重复用于无缝循环 -->
+      <img src="/photos/1.jpg" alt="">
+      <img src="/photos/2.jpg" alt="">
+      <img src="/photos/3.jpg" alt="">
+      <img src="/photos/4.jpg" alt="">
+      <img src="/photos/5.jpg" alt="">
+      <img src="/photos/6.jpg" alt="">
+      <img src="/photos/7.jpg" alt="">
+      <img src="/photos/8.jpg" alt="">
+      <img src="/photos/9.jpg" alt="">
+    </div>
+    <!-- 第2排 -->
+    <div class="photo-row">
+      <img src="/photos/1.jpg" alt="">
+      <img src="/photos/2.jpg" alt="">
+      <img src="/photos/3.jpg" alt="">
+      <img src="/photos/4.jpg" alt="">
+      <img src="/photos/5.jpg" alt="">
+      <img src="/photos/6.jpg" alt="">
+      <img src="/photos/7.jpg" alt="">
+      <img src="/photos/8.jpg" alt="">
+      <img src="/photos/9.jpg" alt="">
+      <img src="/photos/1.jpg" alt="">
+      <img src="/photos/2.jpg" alt="">
+      <img src="/photos/3.jpg" alt="">
+      <img src="/photos/4.jpg" alt="">
+      <img src="/photos/5.jpg" alt="">
+      <img src="/photos/6.jpg" alt="">
+      <img src="/photos/7.jpg" alt="">
+      <img src="/photos/8.jpg" alt="">
+      <img src="/photos/9.jpg" alt="">
+    </div>
+    <!-- 第3排 -->
+    <div class="photo-row">
+      <img src="/photos/1.jpg" alt="">
+      <img src="/photos/2.jpg" alt="">
+      <img src="/photos/3.jpg" alt="">
+      <img src="/photos/4.jpg" alt="">
+      <img src="/photos/5.jpg" alt="">
+      <img src="/photos/6.jpg" alt="">
+      <img src="/photos/7.jpg" alt="">
+      <img src="/photos/8.jpg" alt="">
+      <img src="/photos/9.jpg" alt="">
+      <img src="/photos/1.jpg" alt="">
+      <img src="/photos/2.jpg" alt="">
+      <img src="/photos/3.jpg" alt="">
+      <img src="/photos/4.jpg" alt="">
+      <img src="/photos/5.jpg" alt="">
+      <img src="/photos/6.jpg" alt="">
+      <img src="/photos/7.jpg" alt="">
+      <img src="/photos/8.jpg" alt="">
+      <img src="/photos/9.jpg" alt="">
+    </div>
+  </div>
+
   <!-- 底部导航 -->
   <div class="bottom-nav">
     <a href="/about.html">→ About Me</a>
   </div>
-
-  <div class="section">
-  <h2>我的3D模型</h2>
-  <model-viewer 
-    src="model.glb" 
-    alt="3D模型展示" 
-    auto-rotate 
-    camera-controls 
-    shadow-intensity="1" 
-    style="width:100%; height:500px; border-radius:12px; background:var(--bg);"
-  ></model-viewer>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-</div>
 
   <script type="module">
     import * as THREE from 'three';
@@ -337,6 +449,7 @@
     const raysLayer = document.querySelector('.rays-layer');
     const bottomNav = document.querySelector('.bottom-nav');
     const modelCanvas = document.querySelector('.model-canvas');
+    const photoWall = document.querySelector('.photo-wall');
 
     // ── Three.js 场景 ────────────────────────────────────────
     const scene = new THREE.Scene();
@@ -375,12 +488,14 @@
     const scrollContainer = document.querySelector('.scroll-container');
     const totalScrollHeight = scrollContainer.offsetHeight;
 
-    // 三段滚动节点（按 700vh 分配）
+    // 四段滚动节点（按 823vh 分配）
     // Phase A: 0 → 40%  竖线散开 + NOTHING 消失 + 圆圈出现
     // Phase B: 40% → 65% 圆圈向四周散开、离开视口
-    // Phase C: 65% → 100% 右下角射线旋出并占满屏
+    // Phase C: 65% → 85% 射线旋出占满 → 随滚动旋走消失
+    // Phase D: 85% → 100% 照片墙横向滚动
     const phaseAEnd = totalScrollHeight * 0.40;
     const phaseBEnd = totalScrollHeight * 0.65;
+    const phaseCEnd = totalScrollHeight * 0.85;
 
     // 每个圆圈散开的「基准方向」（单位向量 dx, dy），从视觉中心(25%, 45%)指向各圆
     const circleDirs = [
@@ -395,6 +510,15 @@
     // 超出屏幕的最小距离（视口对角线的 1.2 倍）
     const diag = Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2);
     const scatterDist = diag * 1.3;
+
+    // Phase C 射线旋走 — 追踪鼠标滚轮增量
+    let wheelDelta = 0;
+    window.addEventListener('wheel', (e) => {
+      if (window.scrollY > phaseBEnd) {
+        wheelDelta += e.deltaY * 0.3;
+        wheelDelta = Math.max(-600, Math.min(600, wheelDelta));
+      }
+    }, { passive: true });
 
     function handleScroll() {
       const scrollY = window.scrollY;
@@ -434,43 +558,78 @@
         revealText.style.opacity = Math.max(1 - progressB * 2.5, 0);
       }
 
-      // ── Phase C: 右下角射线释放、旋绕、占满屏 ─────────────────
+      // ── Phase C: 射线旋走 + 3D 模型消失 ─────────────────────
       let progressC = 0;
-      if (scrollY > phaseBEnd) {
-        progressC = Math.min((scrollY - phaseBEnd) / (totalScrollHeight - phaseBEnd), 1);
+      if (scrollY > phaseBEnd && scrollY <= phaseCEnd) {
+        progressC = Math.min((scrollY - phaseBEnd) / (phaseCEnd - phaseBEnd), 1);
       }
 
       const easeC = easeInOutCubic(progressC);
       const isNarrow = window.matchMedia('(max-width: 768px)').matches;
       const cx = isNarrow ? '88%' : '92%';
       const cy = isNarrow ? '96%' : '94%';
-      const r = easeC * 165;
-      raysLayer.style.opacity = String(Math.min(easeC * 1.35, 1));
-      raysLayer.style.setProperty('--rays-from', `${easeC * 240}deg`);
-      const clip = `circle(${r}vmax at ${cx} ${cy})`;
-      raysLayer.style.clipPath = clip;
-      raysLayer.style.setProperty('-webkit-clip-path', clip);
 
-      if (progressC > 0.02) {
-        bottomNav.style.opacity = String(Math.max(0, 1 - progressC * 2.5));
-        bottomNav.style.transform = 'translateX(-50%) translateY(100px)';
-        // 3D 模型随 C 阶段显现并旋转
-        modelCanvas.style.opacity = String(Math.min(easeC * 1.5, 1));
-        if (model) {
+      // 射线半径：先扩张(0→0.5)，后半段旋走消失(0.5→1)
+      const maxR = 165;
+      let r;
+      if (progressC <= 0.5) {
+        r = maxR * easeInOutCubic(progressC * 2);
+      } else {
+        r = maxR * (1 - easeInOutCubic((progressC - 0.5) * 2));
+      }
+
+      raysLayer.style.opacity = progressC > 0.5
+        ? String(Math.max(0, 1 - (progressC - 0.5) * 2))
+        : String(Math.min(easeC * 1.35, 1));
+
+      // 射线随 scroll + wheelDelta 旋转旋走
+      const spinDeg = easeC * 240 + wheelDelta;
+      raysLayer.style.setProperty('--rays-from', `${spinDeg}deg`);
+      raysLayer.style.setProperty('-webkit-clip-path', `circle(${r}vmax at ${cx} ${cy})`);
+      raysLayer.style.clipPath = `circle(${r}vmax at ${cx} ${cy})`;
+
+      // 模型淡出
+      if (model) {
+        if (progressC > 0.5) {
+          model.visible = false;
+          modelCanvas.style.opacity = '0';
+        } else {
           model.visible = true;
+          modelCanvas.style.opacity = String(Math.min(easeC * 1.5, 1));
           model.rotation.y = easeC * Math.PI * 3;
           model.rotation.x = easeC * Math.PI * 0.5;
         }
+      }
+
+      if (progressC > 0 && progressC <= 1) {
+        renderer.render(scene, camera);
+      }
+
+      // ── Phase D: 照片墙显现 ─────────────────────────────────
+      let progressD = 0;
+      if (scrollY > phaseCEnd) {
+        progressD = Math.min((scrollY - phaseCEnd) / (totalScrollHeight - phaseCEnd), 1);
+      }
+
+      const easeD = easeInOutCubic(progressD);
+      if (progressD > 0) {
+        photoWall.style.opacity = String(easeD);
+        photoWall.style.pointerEvents = 'auto';
+        raysLayer.style.opacity = '0';
+        modelCanvas.style.opacity = '0';
+      } else {
+        photoWall.style.opacity = '0';
+        photoWall.style.pointerEvents = 'none';
+      }
+
+      // 导航消失
+      if (progressC > 0.02 || progressD > 0) {
+        const navFade = Math.max(progressC, progressD);
+        bottomNav.style.opacity = String(Math.max(0, 1 - navFade * 2.5));
+        bottomNav.style.transform = 'translateX(-50%) translateY(100px)';
       } else {
         bottomNav.style.opacity = '';
         bottomNav.style.transform = '';
-        modelCanvas.style.opacity = '0';
-        if (model) model.visible = false;
-      }
-
-      // C 阶段持续渲染
-      if (progressC > 0) {
-        renderer.render(scene, camera);
       }
     }
 
