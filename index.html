@@ -1,9 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NOTHING</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://esm.sh/three",
+      "three/addons/": "https://esm.sh/three/examples/jsm/"
+    }
+  }
+  </script>
   <style>
     * {
       margin: 0;
@@ -11,10 +20,10 @@
       box-sizing: border-box;
     }
 
-    /* 固定原图风格：橙底黑字，不受系统明暗模式影响 */
     :root {
-      --bg: #f9b233; /* 原图暖橙色背景 */
-      --text: #000000; /* 纯黑色文字 */
+      --bg: #f9b233;
+      --text: #000000;
+      --progress: 0;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -24,26 +33,40 @@
       }
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
-      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* 滚动区域容器 */
+    .scroll-container {
+      height: 700vh;
+      position: relative;
+    }
+
+    /* 固定的视口层 - NOTHING 首屏 */
+    .hero {
+      position: sticky;
+      top: 0;
+      height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      position: relative;
-      transition: background 0.3s;
-      cursor: pointer; /* 鼠标悬停显示手型，提示可点击 */
+      z-index: 10;
     }
 
-    /* 1:1还原原图竖线背景纹理 */
-    body::before {
-      content: "";
+    /* 竖线背景 - 分左右两部分便于分开移动 */
+    .lines-left,
+    .lines-right {
       position: absolute;
       top: 0;
-      left: 0;
-      width: 100%;
+      width: 50%;
       height: 100%;
       background-image: repeating-linear-gradient(
         90deg,
@@ -53,26 +76,170 @@
         transparent 20px
       );
       opacity: 0.9;
-      z-index: 0;
-      pointer-events: none;
+      transition: transform 0.05s linear;
     }
 
-    /* NOTHING 文字样式，还原圆润粗体效果 */
+    .lines-left {
+      left: 0;
+      transform: translateX(0);
+    }
+
+    .lines-right {
+      right: 0;
+      transform: translateX(0);
+    }
+
+    /* NOTHING 文字 */
     .nothing-text {
-      font-size: clamp(6rem, 15vw, 12rem); /* 自适应屏幕大小 */
+      font-size: clamp(6rem, 15vw, 12rem);
       font-weight: 900;
       color: var(--text);
       letter-spacing: 0.1em;
-      z-index: 1;
       text-transform: uppercase;
       user-select: none;
       font-family: "Arial Black", Gadget, sans-serif;
       -webkit-font-smoothing: antialiased;
-      transition: transform 0.2s ease; /* 点击动画 */
+      transition: transform 0.2s ease, opacity 0.1s linear;
+      cursor: pointer;
+      z-index: 5;
     }
 
     .nothing-text:hover {
-      transform: scale(1.05); /* 鼠标悬停放大，增强交互感 */
+      transform: scale(1.05);
+    }
+
+    /* 底部展示区域 */
+    .reveal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 20;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .reveal.active {
+      pointer-events: auto;
+      opacity: 1;
+    }
+
+    /* 圆圈容器 - 整体偏左 */
+    .circles {
+      position: absolute;
+      top: 45%;
+      left: 25%;
+      transform: translate(-25%, -50%) scale(0);
+      transition: transform 1s ease;
+    }
+
+    .reveal.active .circles {
+      transform: translate(-25%, -50%) scale(1.15);
+    }
+
+    /* 黑色描边圆圈 */
+    .circle {
+      position: absolute;
+      border: 3px solid var(--text);
+      border-radius: 50%;
+      transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .circle-1 { width: 120px; height: 120px; top: -80px; left: -120px; }
+    .circle-2 { width: 400px; height: 400px; top: -120px; left: 20px; }
+    .circle-3 { width: 300px; height: 300px; top: 80px; left: -200px; }
+    .circle-4 { width: 100px; height: 100px; top: 160px; left: 60px; }
+    .circle-5 { width: 140px; height: 140px; top: -240px; left: 180px; }
+    .circle-6 { width: 100px; height: 100px; top: -150px; left: 280px; }
+    .circle-7 { width: 180px; height: 180px; top: 200px; left: 140px; }
+
+    /* 右侧文字 */
+    .reveal-text {
+      position: absolute;
+      top: 50%;
+      right: 10%;
+      transform: translateY(-50%);
+      text-align: right;
+      opacity: 0;
+      transition: opacity 0.5s ease 0.3s;
+    }
+
+    .reveal.active .reveal-text {
+      opacity: 1;
+    }
+
+    .reveal-text h2 {
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      color: var(--text);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      font-family: "Arial Black", Gadget, sans-serif;
+    }
+
+    .reveal-text p {
+      font-size: clamp(0.9rem, 2vw, 1.2rem);
+      color: var(--text);
+      font-weight: 400;
+      opacity: 0.8;
+    }
+
+    /* 底部导航 */
+    .bottom-nav {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      opacity: 0;
+      transition: all 0.5s ease 0.5s;
+      z-index: 25;
+    }
+
+    .reveal.active ~ .bottom-nav {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .bottom-nav a {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      background: var(--text);
+      color: var(--bg);
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 30px;
+      transition: transform 0.2s ease;
+      font-family: "Arial Black", Gadget, sans-serif;
+    }
+
+    .bottom-nav a:hover {
+      transform: scale(1.05);
+    }
+
+    /* C 阶段：右下角一点放射，黑/橙交替占满屏 */
+    .rays-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 22;
+      pointer-events: none;
+      opacity: 0;
+      background: repeating-conic-gradient(
+        from var(--rays-from, 0deg) at 92% 94%,
+        #000 0deg 1.8deg,
+        #f9b233 1.8deg 3.6deg
+      );
+      clip-path: circle(0px at 92% 94%);
+      -webkit-clip-path: circle(0px at 92% 94%);
+    }
+
+    /* 3D 模型层 — 放在射线之上，完全露出 */
+    .model-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 23;
+      pointer-events: none;
+      opacity: 0;
     }
 
     /* 移动端适配 */
@@ -81,13 +248,241 @@
         font-size: clamp(3rem, 12vw, 6rem);
         letter-spacing: 0.05em;
       }
+
+      .circle-1 { width: 80px; height: 80px; top: -50px; left: -80px; }
+      .circle-2 { width: 140px; height: 140px; top: -40px; left: 10px; }
+      .circle-3 { width: 100px; height: 100px; top: 60px; left: -60px; }
+      .circle-4 { width: 70px; height: 70px; top: 120px; left: 40px; }
+      .circle-5 { width: 100px; height: 100px; top: -80px; left: 120px; }
+      .circle-6 { width: 60px; height: 60px; top: 30px; left: 140px; }
+      .circle-7 { width: 120px; height: 120px; top: 80px; left: 100px; }
+
+      .reveal-text {
+        right: 5%;
+      }
+
+      .rays-layer {
+        background: repeating-conic-gradient(
+          from var(--rays-from, 0deg) at 88% 96%,
+          #000 0deg 2.25deg,
+          #f9b233 2.25deg 4.5deg
+        );
+        clip-path: circle(0px at 88% 96%);
+        -webkit-clip-path: circle(0px at 88% 96%);
+      }
     }
   </style>
 </head>
 <body>
-  <!-- 点击文字跳转到个人主页 about.html -->
-  <a href="/about.html" style="text-decoration: none; color: inherit;">
-    <div class="nothing-text">NOTHING</div>
-  </a>
+  <!-- 滚动区域 -->
+  <div class="scroll-container">
+    <!-- 固定的 NOTHING 首屏 -->
+    <div class="hero">
+      <div class="lines-left"></div>
+      <div class="lines-right"></div>
+      <div class="nothing-text">
+        <a href="/about.html" style="text-decoration: none; color: inherit;">NOTHING</a>
+      </div>
+    </div>
+
+    <!-- 底部展示层（滚动后显示） -->
+    <div class="reveal">
+      <div class="circles">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+        <div class="circle circle-4"></div>
+        <div class="circle circle-5"></div>
+        <div class="circle circle-6"></div>
+        <div class="circle circle-7"></div>
+      </div>
+      <div class="reveal-text">
+        <h2>Don't know what to show</h2>
+        <p>Just a few circles......</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="rays-layer" aria-hidden="true"></div>
+  <canvas class="model-canvas" aria-hidden="true"></canvas>
+
+  <!-- 底部导航 -->
+  <div class="bottom-nav">
+    <a href="/about.html">→ About Me</a>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    const linesLeft = document.querySelector('.lines-left');
+    const linesRight = document.querySelector('.lines-right');
+    const nothingText = document.querySelector('.nothing-text');
+    const reveal = document.querySelector('.reveal');
+    const circles = document.querySelectorAll('.circle');
+    const revealText = document.querySelector('.reveal-text');
+    const raysLayer = document.querySelector('.rays-layer');
+    const bottomNav = document.querySelector('.bottom-nav');
+    const modelCanvas = document.querySelector('.model-canvas');
+
+    // ── Three.js 场景 ────────────────────────────────────────
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: modelCanvas, alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // 投影到屏幕右下角 92% 94%
+    function positionCamera() {
+      const x =  (window.innerWidth  * 0.92) - window.innerWidth  / 2;
+      const y = -(window.innerHeight * 0.94) + window.innerHeight / 2;
+      camera.position.set(x, y, 5);
+      camera.lookAt(x, y, 0);
+    }
+    positionCamera();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      positionCamera();
+    });
+
+    // 加载 1.glb，中心放在 (0,0,0)，相机已对齐圆心
+    let model = null;
+    const loader = new GLTFLoader();
+    loader.load('/1.glb', (gltf) => {
+      model = gltf.scene;
+      model.visible = false;
+      model.scale.setScalar(0.5);
+      scene.add(model);
+    });
+
+    // 滚动相关配置
+    const scrollContainer = document.querySelector('.scroll-container');
+    const totalScrollHeight = scrollContainer.offsetHeight;
+
+    // 三段滚动节点（按 700vh 分配）
+    // Phase A: 0 → 40%  竖线散开 + NOTHING 消失 + 圆圈出现
+    // Phase B: 40% → 65% 圆圈向四周散开、离开视口
+    // Phase C: 65% → 100% 右下角射线旋出并占满屏
+    const phaseAEnd = totalScrollHeight * 0.40;
+    const phaseBEnd = totalScrollHeight * 0.65;
+
+    // 每个圆圈散开的「基准方向」（单位向量 dx, dy），从视觉中心(25%, 45%)指向各圆
+    const circleDirs = [
+      { dx: -0.9, dy: -0.4 },  // circle-1 左上
+      { dx:  0.5, dy: -0.6 },  // circle-2 右上（大圆）
+      { dx: -0.9, dy:  0.3 },  // circle-3 左中
+      { dx:  0.5, dy:  0.7 },  // circle-4 右下
+      { dx:  0.8, dy: -0.5 },  // circle-5 右
+      { dx:  0.9, dy: -0.3 },  // circle-6 右
+      { dx:  0.6, dy:  0.8 },  // circle-7 右下
+    ];
+    // 超出屏幕的最小距离（视口对角线的 1.2 倍）
+    const diag = Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2);
+    const scatterDist = diag * 1.3;
+
+    function handleScroll() {
+      const scrollY = window.scrollY;
+      const vw = window.innerWidth;
+
+      // ── Phase A: 竖线 + NOTHING + 圆圈出现 ──────────────────────
+      const progressA = Math.min(scrollY / phaseAEnd, 1);
+
+      const maxOffset = vw * 0.6;
+      linesLeft.style.transform  = `translateX(${-maxOffset * progressA}px)`;
+      linesRight.style.transform = `translateX(${maxOffset * progressA}px)`;
+
+      nothingText.style.opacity   = Math.max(1 - progressA * 2, 0);
+      nothingText.style.transform = `scale(${1 - progressA * 0.5})`;
+
+      if (scrollY > phaseAEnd * 0.8) {
+        reveal.classList.add('active');
+      } else {
+        reveal.classList.remove('active');
+      }
+
+      // ── Phase B: 圆圈向四周散开 ───────────────────────────────
+      let progressB = 0;
+      if (scrollY > phaseAEnd) {
+        progressB = Math.min((scrollY - phaseAEnd) / (phaseBEnd - phaseAEnd), 1);
+      }
+
+      circles.forEach((circle, i) => {
+        const { dx, dy } = circleDirs[i];
+        const dist = progressB * scatterDist;
+        const ease = easeOutCubic(progressB);
+        circle.style.transform = `translate(${dx * dist * ease}px, ${dy * dist * ease}px)`;
+      });
+
+      // 文字在 B 阶段中淡出
+      if (progressB > 0) {
+        revealText.style.opacity = Math.max(1 - progressB * 2.5, 0);
+      }
+
+      // ── Phase C: 右下角射线释放、旋绕、占满屏 ─────────────────
+      let progressC = 0;
+      if (scrollY > phaseBEnd) {
+        progressC = Math.min((scrollY - phaseBEnd) / (totalScrollHeight - phaseBEnd), 1);
+      }
+
+      const easeC = easeInOutCubic(progressC);
+      const isNarrow = window.matchMedia('(max-width: 768px)').matches;
+      const cx = isNarrow ? '88%' : '92%';
+      const cy = isNarrow ? '96%' : '94%';
+      const r = easeC * 165;
+      raysLayer.style.opacity = String(Math.min(easeC * 1.35, 1));
+      raysLayer.style.setProperty('--rays-from', `${easeC * 240}deg`);
+      const clip = `circle(${r}vmax at ${cx} ${cy})`;
+      raysLayer.style.clipPath = clip;
+      raysLayer.style.setProperty('-webkit-clip-path', clip);
+
+      if (progressC > 0.02) {
+        bottomNav.style.opacity = String(Math.max(0, 1 - progressC * 2.5));
+        bottomNav.style.transform = 'translateX(-50%) translateY(100px)';
+        // 3D 模型随 C 阶段显现并旋转
+        modelCanvas.style.opacity = String(Math.min(easeC * 1.5, 1));
+        if (model) {
+          model.visible = true;
+          model.rotation.y = easeC * Math.PI * 3;
+          model.rotation.x = easeC * Math.PI * 0.5;
+        }
+      } else {
+        bottomNav.style.opacity = '';
+        bottomNav.style.transform = '';
+        modelCanvas.style.opacity = '0';
+        if (model) model.visible = false;
+      }
+
+      // C 阶段持续渲染
+      if (progressC > 0) {
+        renderer.render(scene, camera);
+      }
+    }
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    // 使用 requestAnimationFrame 优化性能
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+
+    // 初始化
+    handleScroll();
+  </script>
 </body>
 </html>
