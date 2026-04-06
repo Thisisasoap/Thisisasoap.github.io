@@ -258,18 +258,24 @@
       overflow: hidden;
     }
 
+    /* 行用 translate3d 动画 + 独立层，减轻横向滚动时的发糊（Chrome/Edge 常见） */
     .photo-row {
       display: flex;
       gap: 1rem;
       width: max-content;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
     }
 
     .photo-row img {
-      width: 280px;
-      height: 200px;
+      width: 320px;
+      height: 228px;
       object-fit: cover;
       border-radius: 8px;
       flex-shrink: 0;
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
     }
 
     .photo-row:nth-child(1) { animation: scroll-row-1 18s linear infinite; }
@@ -277,16 +283,16 @@
     .photo-row:nth-child(3) { animation: scroll-row-3 15s linear infinite; }
 
     @keyframes scroll-row-1 {
-      0%   { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
+      0%   { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-50%, 0, 0); }
     }
     @keyframes scroll-row-2 {
-      0%   { transform: translateX(-30%); }
-      100% { transform: translateX(0%); }
+      0%   { transform: translate3d(-30%, 0, 0); }
+      100% { transform: translate3d(0, 0, 0); }
     }
     @keyframes scroll-row-3 {
-      0%   { transform: translateX(-15%); }
-      100% { transform: translateX(20%); }
+      0%   { transform: translate3d(-15%, 0, 0); }
+      100% { transform: translate3d(20%, 0, 0); }
     }
 
     /* 移动端适配 */
@@ -324,8 +330,8 @@
       }
 
       .photo-row img {
-        width: 180px;
-        height: 130px;
+        width: 200px;
+        height: 143px;
       }
     }
   </style>
