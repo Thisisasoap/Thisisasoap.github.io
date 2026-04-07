@@ -274,8 +274,15 @@
       object-fit: cover;
       border-radius: 8px;
       flex-shrink: 0;
-      transform: translateZ(0);
-      -webkit-transform: translateZ(0);
+      transform: translateZ(0) scale(1);
+      -webkit-transform: translateZ(0) scale(1);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+
+    .photo-row img:hover {
+      transform: translateZ(0) scale(1.12);
+      z-index: 10;
     }
 
     .photo-row:nth-child(1) { animation: scroll-row-1 18s linear infinite; }
@@ -355,6 +362,17 @@
       border: 2px solid #000000;
       background: transparent;
       opacity: 0;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                 opacity 0.3s ease;
+    }
+
+    .profile-square:hover {
+      transform: scale(1.06);
+    }
+
+    .profile-square:active {
+      transform: scale(0.95);
     }
 
     .profile-square:nth-child(1)  { grid-area: 1 / 1 / 2 / 3; }
@@ -404,6 +422,54 @@
         width: 200px;
         height: 200px;
       }
+    }
+
+    /* 照片灯箱 */
+    .photo-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .photo-lightbox.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .photo-lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 8px;
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .photo-lightbox.active img {
+      transform: scale(1);
+    }
+
+    .photo-lightbox-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 2rem;
+      font-size: 2.5rem;
+      color: #fff;
+      cursor: pointer;
+      line-height: 1;
+      user-select: none;
+      transition: transform 0.2s ease;
+    }
+
+    .photo-lightbox-close:hover {
+      transform: scale(1.2);
     }
   </style>
 </head>
@@ -801,6 +867,42 @@
     profileLeft.addEventListener('click', () => {
       window.location.href = '/about.html';
     });
+
+    // 照片灯箱逻辑
+    const lightbox = document.getElementById('photoLightbox');
+    const lightboxImg = document.getElementById('photoLightboxImg');
+    const lightboxClose = document.getElementById('photoLightboxClose');
+
+    document.querySelectorAll('.photo-row img').forEach(img => {
+      img.addEventListener('click', (e) => {
+        e.stopPropagation();
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      });
+    });
+
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) closeLightbox();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+        closeLightbox();
+      }
+    });
+
+    function closeLightbox() {
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    }
   </script>
+
+  <!-- 照片灯箱 -->
+  <div class="photo-lightbox" id="photoLightbox">
+    <span class="photo-lightbox-close" id="photoLightboxClose">&times;</span>
+    <img src="" alt="" id="photoLightboxImg">
+  </div>
 </body>
 </html>
